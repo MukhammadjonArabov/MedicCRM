@@ -37,6 +37,7 @@ ALLOWED_HOSTS = ['*']
 APP = [
     'apps.meeting',
     'apps.users',
+    'apps.payment',
 ]
 
 INSTALLED_APPS = [
