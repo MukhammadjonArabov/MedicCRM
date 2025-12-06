@@ -34,6 +34,10 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+APP = [
+    'apps.meeting',
+    'apps.users',
+]
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -44,8 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'app.users',
-]
+] + APP
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
