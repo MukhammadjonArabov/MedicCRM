@@ -32,7 +32,6 @@ class AuditLog(BaseModel):
     action = models.CharField(max_length=255)
     entity = models.CharField(max_length=100)
     entity_id = models.UUIDField()
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.action} ({self.entity})"
@@ -46,7 +45,6 @@ class MedicalRecords(BaseModel):
     diagnosis = models.TextField()
     treatment = models.TextField()
     recommendations = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.patient.full_name} ({self.patient.phone_number})"

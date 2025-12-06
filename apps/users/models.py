@@ -46,6 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     )
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=120)
+    image_user = models.ImageField(upload_to='users/', null=True, blank=True)
     phone_number = models.CharField(max_length=15, validators=[uzbek_phone_validator])
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='admin')
     descriptor = models.CharField(max_length=120, null=True, blank=True)
@@ -67,7 +68,8 @@ class Patients(BaseModel):
         ('female', 'Female'),
     )
     full_name = models.CharField(max_length=120)
-    phone_number = models.CharField(max_length=15, validators=[uzbek_phone_validator])
+    phone_number = models.CharField(max_length=15, validators=[uzbek_phone_validator], unique=True)
+    image_patient = models.ImageField(upload_to='patients/', null=True, blank=True)
     birth_date = models.DateField()
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='male')
     address = models.CharField(max_length=255, null=True, blank=True)

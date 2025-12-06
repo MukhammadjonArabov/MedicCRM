@@ -8,7 +8,6 @@ class Queue(BaseModel):
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
     )
-
     doctor = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
