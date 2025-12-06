@@ -38,6 +38,7 @@ APP = [
     'apps.meeting',
     'apps.users',
     'apps.payment',
+    'apps.analyses',
 ]
 
 INSTALLED_APPS = [

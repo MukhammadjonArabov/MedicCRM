@@ -1,4 +1,4 @@
-from app.users.models import BaseModel, User, Patients
+from apps.users.models import BaseModel, User, Patients
 from django.db import models
 
 
@@ -49,6 +49,7 @@ class Meeting(BaseModel):
         User,
         on_delete=models.SET_NULL,
         related_name='meetings_created',
+        null=True, blank=True
     )
 
     def __str__(self):

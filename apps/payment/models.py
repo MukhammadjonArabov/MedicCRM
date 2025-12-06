@@ -1,4 +1,4 @@
-from app.users.models import BaseModel, User, Patients
+from apps.users.models import BaseModel, User, Patients
 from django.db import models
 
 
