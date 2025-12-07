@@ -8,8 +8,11 @@ from .models import User, Patients
 class UserAdmin(BaseUserAdmin):
     def image_tag(self, obj):
         if obj.image_user:
-            return format_html('<img src="{}" width="50" height="50" style="border-radius:15px;" />'.format(obj.image_user.url))
-        return "-"
+            return format_html(
+                '<img src="{}" width="50" height="50" style="border-radius:15px;" />',
+                obj.image_user.url
+            )
+        return "—"
     image_tag.short_description = "Image"
 
     list_display = ("image_tag", "full_name", "email", "phone_number", "role", "is_active", "is_staff")
@@ -34,9 +37,12 @@ class UserAdmin(BaseUserAdmin):
 @admin.register(Patients)
 class PatientsAdmin(admin.ModelAdmin):
     def image_tag(self, obj):
-        if obj.image_patient:
-            return format_html('<img src="{}" width="50" height="50" style="border-radius:15px;" />'.format(obj.image_patient.url))
-        return "-"
+        if obj.image_user:
+            return format_html(
+                '<img src="{}" width="50" height="50" style="border-radius:15px;" />',
+                obj.image_user.url
+            )
+        return "—"
     image_tag.short_description = "Image"
 
     list_display = ("image_tag", "full_name", "phone_number", "gender", "birth_date")
