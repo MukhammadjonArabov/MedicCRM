@@ -1,10 +1,12 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Analyses, Prescriptions, AuditLog, MedicalRecords
 
 
 @admin.register(Analyses)
 class AnalysesAdmin(admin.ModelAdmin):
     list_display = (
+        "id",
         "patient",
         "analysis_type",
         "status",
@@ -18,14 +20,17 @@ class AnalysesAdmin(admin.ModelAdmin):
 
     def file_preview(self, obj):
         if obj.file:
-            return f"<a href='{obj.file.url}' target='_blank'>📄 File</a>"
+            return format_html(
+                "<a href='{}' target='_blank'>📄 File</a>",
+                obj.file.url
+            )
         return "—"
-    file_preview.allow_tags = True
     file_preview.short_description = "File"
+
 
 @admin.register(Prescriptions)
 class PrescriptionsAdmin(admin.ModelAdmin):
-    list_display = ("patient", "doctor", "created_at")
+    list_display = ("id", "patient", "doctor", "created_at")
     search_fields = (
         "patient__full_name",
         "doctor__full_name",
@@ -34,9 +39,10 @@ class PrescriptionsAdmin(admin.ModelAdmin):
 
     autocomplete_fields = ("patient", "doctor")
 
+
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
-    list_display = ("user", "action", "entity", "entity_id", "created_at")
+    list_display = ("id", "user", "action", "entity", "entity_id", "created_at")
     search_fields = ("user__full_name", "action", "entity")
     list_filter = ("entity", "created_at")
 
@@ -44,9 +50,10 @@ class AuditLogAdmin(admin.ModelAdmin):
 
     ordering = ("-created_at",)
 
+
 @admin.register(MedicalRecords)
 class MedicalRecordsAdmin(admin.ModelAdmin):
-    list_display = ("patient", "doctor", "created_at")
+    list_display = ("id", "patient", "doctor", "created_at")
     search_fields = (
         "patient__full_name",
         "doctor__full_name",

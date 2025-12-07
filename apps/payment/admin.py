@@ -3,7 +3,7 @@ from apps.payment.models import Category, Service, Payments, PaymentItems
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'created_at', 'service_count')
+    list_display = ('id', 'name', 'created_at', 'service_count')
     search_fields = ('name',)
 
     def service_count(self, obj):
@@ -12,7 +12,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category__name', 'price', 'created_at')
+    list_display = ('id', 'name', 'category__name', 'price', 'created_at')
     search_fields = ('name',)
     list_filter = ('category__name',)
 
@@ -23,7 +23,7 @@ class PaymentItemsInline(admin.TabularInline):
 
 @admin.register(Payments)
 class PaymentsAdmin(admin.ModelAdmin):
-    list_display = ("payment_method", "amount_total", "patient", "created_by", "created_at")
+    list_display = ("id", "payment_method", "amount_total", "patient", "created_by", "created_at")
     list_filter = ("payment_method", "created_at")
     search_fields = ("patient__full_name", "created_by__full_name")
 

@@ -16,12 +16,29 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.conf import settings
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf.urls.static import static
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework import permissions
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Medical CRM API",
+        default_version='v1',
+        description="Medical CRM API",
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny,],
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('/', include('apps.users.urls')),
+    path('api/', include('apps.users.urls')),
+
+    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='swagger-ui'),
+    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='redoc-ui'),
+    re_path(r'^swagger\.json$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
 
 if settings.DEBUG:

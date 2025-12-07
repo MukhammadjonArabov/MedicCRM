@@ -14,7 +14,7 @@ class UserAdmin(BaseUserAdmin):
 
     list_display = ("image_tag", "full_name", "email", "phone_number", "role", "is_active", "is_staff")
     list_filter = ("role", "is_active", "is_staff")
-    search_fields = ("full_name", "email", "phone_number")  # autocomplete_fields ishlashi uchun muhim
+    search_fields = ("full_name", "email", "phone_number")  
     ordering = ("email",)
 
     fieldsets = (
