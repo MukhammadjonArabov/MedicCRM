@@ -1,10 +1,13 @@
 from rest_framework.views import APIView
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from apps.users.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg.utils import swagger_auto_schema
-from apps.users.serializers import UserSerializer, LoginSerializer, RefreshTokenSerializer, TokenSerializer
+from apps.users.serializers import (
+    UserSerializer, LoginSerializer, RefreshTokenSerializer, TokenSerializer, UserCreateSerializer
+)
 
 ###  -------  Login  -------
 class LoginView(APIView):
@@ -14,7 +17,6 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
 
@@ -74,7 +76,18 @@ class RefreshView(APIView):
 class UserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(tags=["Users"])
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+### -------  User Register  -------
+class UserRegisterView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(tags=["Users"])
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
