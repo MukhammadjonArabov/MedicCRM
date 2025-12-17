@@ -5,6 +5,7 @@ from rest_framework import status, permissions
 from apps.users.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg.utils import swagger_auto_schema
+from apps.users.permissions import IsAdmin
 from apps.users.serializers import (
     UserSerializer, LoginSerializer, RefreshTokenSerializer, TokenSerializer, UserCreateSerializer
 )
@@ -85,7 +86,7 @@ class UserView(APIView):
 class UserRegisterView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdmin]
 
     @swagger_auto_schema(tags=["Users"])
     def post(self, request, *args, **kwargs):
