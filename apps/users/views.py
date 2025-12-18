@@ -1,11 +1,13 @@
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from apps.users.models import User
+from rest_framework import generics, filters
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg.utils import swagger_auto_schema
 from apps.users.permissions import IsAdmin
+from django_filters.rest_framework import DjangoFilterBackend
 from apps.users.serializers import (
     UserSerializer, LoginSerializer, RefreshTokenSerializer, TokenSerializer, UserCreateSerializer
 )
@@ -79,6 +81,11 @@ class UserView(APIView):
 
     @swagger_auto_schema(tags=["Users"])
     def get(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response(
+                {'error': 'User does not exist'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
@@ -92,3 +99,16 @@ class UserRegisterView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_fields = ['role', 'is_active']
+    search_fields = ['full_name', 'email', 'phone_number', 'descriptor']
+    ordering_fields = ['full_name', 'email', 'role']
+    ordering = ['full_name']
+
+    @swagger_auto_schema(tags=["Users"])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
