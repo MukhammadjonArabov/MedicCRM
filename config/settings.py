@@ -141,9 +141,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-REST_FRAMEWORK = {
-
-}
 
 
 SIMPLE_JWT = {
