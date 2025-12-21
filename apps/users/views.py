@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
-from rest_framework import status, permissions, generics
+from rest_framework import status, permissions, generics, viewsets
 from apps.users.models import User
 from rest_framework import generics, filters
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -12,8 +12,10 @@ from apps.users.serializers import (
     UserSerializer, LoginSerializer, RefreshTokenSerializer, TokenSerializer, UserCreateSerializer
 )
 
-###  -------  Login  -------
 class LoginView(APIView):
+    """
+    Login
+    """
     permission_classes = [permissions.AllowAny]
 
     @swagger_auto_schema(tags=["Auth"], request_body=LoginSerializer, responses={200: TokenSerializer})
@@ -41,8 +43,10 @@ class LoginView(APIView):
         }
         return Response(TokenSerializer(token_data).data)
 
-###  -------  Logout  -------
 class LogoutView(APIView):
+    """
+    Logout
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(tags=["Auth"], request_body=RefreshTokenSerializer)
@@ -58,8 +62,11 @@ class LogoutView(APIView):
         except Exception:
             return Response({'detail': 'Failed to logout'}, status=status.HTTP_400_BAD_REQUEST)
 
-###  -------  Refresh Token  -------
+
 class RefreshView(APIView):
+    """
+    Refresh Token
+    """
     permission_classes = [permissions.AllowAny]
 
     @swagger_auto_schema(tags=["Auth"], request_body=RefreshTokenSerializer, responses={200: TokenSerializer})
@@ -75,8 +82,10 @@ class RefreshView(APIView):
         except Exception:
             return Response({'detail': 'Failed to refresh token'}, status=status.HTTP_400_BAD_REQUEST)
 
-###  -------  User Info  -------
 class UserView(APIView):
+    """
+    User Info
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(tags=["Users"])
@@ -89,27 +98,40 @@ class UserView(APIView):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-### -------  User Register  -------
-class UserRegisterView(CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserCreateSerializer
-    permission_classes = [IsAdmin]
-
-    @swagger_auto_schema(tags=["Users"])
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-
-### -------   User List   -------
-class UserListView(generics.ListAPIView):
+class UserViewSet(viewsets.ModelViewSet):
+    """
+     User CRUD API
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]
+
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filter_fields = ['role', 'is_active']
+    filterset_fields = ['role', 'is_active']
     search_fields = ['full_name', 'email', 'phone_number', 'descriptor']
     ordering_fields = ['full_name', 'email', 'role']
     ordering = ['full_name']
 
     @swagger_auto_schema(tags=["Users"])
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["Users"])
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["Users"])
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["Users"])
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["Users"])
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["Users"])
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)

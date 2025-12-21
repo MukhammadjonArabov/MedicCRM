@@ -1,5 +1,4 @@
 #!/bin/sh
-
 echo "⏳ PostgreSQL kutilyapti..."
 while ! nc -z db 5432; do
   sleep 0.2
