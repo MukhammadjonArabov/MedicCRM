@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from apps.users.models import User
-from apps.users.models import uzbek_phone_validator
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.CharField()
@@ -53,3 +52,8 @@ class UserSerializer(serializers.ModelSerializer):
 
             instance.save()
             return instance
+
+class UserListRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','email','full_name','role','phone_number','descriptor','image_user']

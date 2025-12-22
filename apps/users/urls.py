@@ -19,6 +19,6 @@ urlpatterns = [
     path('refresh/', RefreshView.as_view(), name='auth_refresh'),
 
     # -------- CURRENT USER --------
-    path('user-me/', UserView.as_view(), name='auth_user'),
+    path('me/', UserView.as_view(), name='auth_user'),
     path('', include(router.urls)),
 ]

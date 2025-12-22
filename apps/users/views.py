@@ -9,7 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 from apps.users.permissions import IsAdmin
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.users.serializers import (
-    UserSerializer, LoginSerializer, RefreshTokenSerializer, TokenSerializer, UserCreateSerializer
+    UserSerializer, LoginSerializer, RefreshTokenSerializer, TokenSerializer, UserListRetrieveSerializer
 )
 
 class LoginView(APIView):
@@ -95,7 +95,7 @@ class UserView(APIView):
                 {'error': 'User does not exist'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        serializer = UserSerializer(request.user)
+        serializer = UserListRetrieveSerializer(request.user)
         return Response(serializer.data)
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -111,6 +111,11 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ['full_name', 'email', 'phone_number', 'descriptor']
     ordering_fields = ['full_name', 'email', 'role']
     ordering = ['full_name']
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return UserListRetrieveSerializer
+        return UserSerializer
 
     @swagger_auto_schema(tags=["Users"])
     def list(self, request, *args, **kwargs):
