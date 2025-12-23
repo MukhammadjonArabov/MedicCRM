@@ -7,6 +7,7 @@ from apps.users.views import (
     RefreshView,
     UserView,
     UserViewSet,
+    DoctorListView,
 )
 
 router = DefaultRouter()
@@ -17,8 +18,9 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='auth_login'),
     path('logout/', LogoutView.as_view(), name='auth_logout'),
     path('refresh/', RefreshView.as_view(), name='auth_refresh'),
+    path('me/', UserView.as_view(), name='auth_me'),
 
-    # -------- CURRENT USER --------
-    path('me/', UserView.as_view(), name='auth_user'),
+    # -------- USERS --------
+    path('doctors/', DoctorListView.as_view(), name='doctor_list'),
     path('', include(router.urls)),
 ]
