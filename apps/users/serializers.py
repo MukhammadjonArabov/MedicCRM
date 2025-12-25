@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.users.models import User, StaffSchedule
+from apps.users.models import User, StaffSchedule, Patients
 
 
 class LoginSerializer(serializers.Serializer):
@@ -89,6 +89,7 @@ class StaffScheduleSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['staff_name', 'staff_role', 'day_display']
 
+
 class StaffScheduleCreateSerializer(serializers.ModelSerializer):
     staff_name = serializers.CharField(source='staff.full_name', read_only=True)
     day_display = serializers.CharField(source='get_day_display', read_only=True)
@@ -107,3 +108,20 @@ class StaffScheduleCreateSerializer(serializers.ModelSerializer):
                 'Start time > End time'
             )
         return data
+
+class PatientListSerializer(serializers.ModelSerializer):  # PatientsListSerializers → PatientListSerializer
+    class Meta:
+        model = Patients
+        fields = ['id', 'full_name', 'phone_number', 'image_patient']
+
+class PatientDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patients
+        fields = ['id', 'full_name', 'phone_number', 'image_patient',
+                  'birth_date', 'gender', 'address', 'notes']
+
+class PatientCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patients
+        fields = ['full_name', 'phone_number', 'image_patient',
+                  'birth_date', 'gender', 'address', 'notes']

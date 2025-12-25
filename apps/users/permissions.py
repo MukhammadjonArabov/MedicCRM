@@ -22,7 +22,7 @@ class IsDoctorOrAdminOrRegisterOrNurse(BasePermission):
         )
 
 
-class IsDoctorOrAdminOrRegister(BasePermission):
+class IsDoctorOrAdminOrRegistrar(BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user.is_authenticated and
@@ -30,7 +30,7 @@ class IsDoctorOrAdminOrRegister(BasePermission):
         )
 
 
-class IsAdminOrRegister(BasePermission):
+class IsAdminOrRegistrar(BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user.is_authenticated and

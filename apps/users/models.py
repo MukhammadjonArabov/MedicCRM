@@ -78,6 +78,11 @@ class Patients(BaseModel):
     def __str__(self):
         return f"{self.full_name} ({self.phone_number})"
 
+    class Meta:
+        verbose_name = 'Patient'
+        verbose_name_plural = 'Patients'
+        ordering = ['-created_at']
+
 
 
 class StaffSchedule(BaseModel):

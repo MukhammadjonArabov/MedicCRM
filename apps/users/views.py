@@ -4,9 +4,14 @@ from rest_framework import status, permissions, viewsets, filters, generics
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
-from apps.users.permissions import IsAdmin, IsDoctorOrAdminOrRegisterOrNurse
-from apps.users.models import User, StaffSchedule
+from apps.users.models import User, StaffSchedule, Patients
 from django.contrib.auth import authenticate
+from apps.users.permissions import (
+    IsAdmin,
+    IsDoctorOrAdminOrRegisterOrNurse,
+    IsAdminOrRegistrar,
+    IsDoctorOrAdminOrRegistrar
+)
 from apps.users.serializers import (
     UserSerializer,
     LoginSerializer,
@@ -15,6 +20,9 @@ from apps.users.serializers import (
     StaffScheduleSerializer,
     StaffScheduleCreateSerializer,
     TokenResponseSerializer,
+    PatientListSerializer,
+    PatientDetailSerializer,
+    PatientCreateUpdateSerializer
 )
 
 
@@ -167,5 +175,33 @@ class StaffScheduleUpdateView(generics.UpdateAPIView):
 
     lookup_field = 'pk'
     lookup_url_kwarg = 'pk'
+
+
+class PatientViewSet(viewsets.ModelViewSet):
+    queryset = Patients.objects.all()
+    lookup_field = 'pk'
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PatientListSerializer
+        elif self.action in ['retrieve', 'update', 'partial_update']:
+            return PatientDetailSerializer
+        return PatientCreateUpdateSerializer
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [IsDoctorOrAdminOrRegistrar]
+        elif self.action == 'create':
+            permission_classes = [IsAdminOrRegistrar]
+        elif self.action == 'retrieve':
+            permission_classes = [IsDoctorOrAdminOrRegistrar]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsAdminOrRegistrar]
+        elif self.action == 'destroy':
+            permission_classes = [IsAdmin]
+        else:
+            permission_classes = [IsDoctorOrAdminOrRegistrar]
+
+        return [permission() for permission in permission_classes]
 
 

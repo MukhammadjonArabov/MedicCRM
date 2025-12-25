@@ -9,11 +9,14 @@ from apps.users.views import (
     UserViewSet,
     DoctorListView,
     StaffScheduleListView,
-    StaffScheduleCreateView, StaffScheduleUpdateView,
+    StaffScheduleCreateView,
+    StaffScheduleUpdateView,
+    PatientViewSet,
 )
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='users')
+router.register(r'patients', PatientViewSet, basename='patient')
 
 urlpatterns = [
     # -------- AUTH --------
