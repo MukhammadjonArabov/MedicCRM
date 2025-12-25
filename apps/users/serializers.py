@@ -4,12 +4,21 @@ from apps.users.models import User, StaffSchedule
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
 
-class TokenSerializer(serializers.Serializer):
+class TokenResponseSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
     access = serializers.CharField()
-    refresh = serializers.CharField(required=False)
+    user = serializers.SerializerMethodField(read_only=True)
+
+    def get_user(self, obj):
+        return {
+            "id": 0,
+            "email": "string",
+            "full_name": "string",
+            "role": "string"
+        }
 
 
 class RefreshTokenSerializer(serializers.Serializer):
@@ -79,3 +88,22 @@ class StaffScheduleSerializer(serializers.ModelSerializer):
             'day', 'day_display', 'start_time', 'end_time'
         ]
         read_only_fields = ['staff_name', 'staff_role', 'day_display']
+
+class StaffScheduleCreateSerializer(serializers.ModelSerializer):
+    staff_name = serializers.CharField(source='staff.full_name', read_only=True)
+    day_display = serializers.CharField(source='get_day_display', read_only=True)
+
+    class Meta:
+        model = StaffSchedule
+        fields = [
+            'id', 'staff', 'staff_name',
+            'day', 'day_display', 'start_time', 'end_time'
+        ]
+        read_only_fields = ['staff_name', 'day_display']
+
+    def validate(self, data):
+        if data['start_time'] > data['end_time']:
+            raise serializers.ValidationError(
+                'Start time > End time'
+            )
+        return data

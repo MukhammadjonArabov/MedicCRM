@@ -6,15 +6,41 @@ class IsDoctor(BasePermission):
             request.user and request.user.role == 'doctor'
         )
 
+
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user.is_authenticated and request.user.role == 'admin'
         )
 
-class IsDoctorOrAdminOrRegister(BasePermission):
+
+class IsDoctorOrAdminOrRegisterOrNurse(BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user.is_authenticated and
             request.user.role in ['doctor', 'nurse', 'admin', 'registrar']
+        )
+
+
+class IsDoctorOrAdminOrRegister(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user.is_authenticated and
+            request.user.role in ['doctor', 'admin', 'registrar']
+        )
+
+
+class IsAdminOrRegister(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user.is_authenticated and
+            request.user.role in ['admin', 'registrar']
+        )
+
+
+class IsDoctorOrAdmin(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user.is_authenticated and
+            request.user.role in ['doctor', 'admin']
         )

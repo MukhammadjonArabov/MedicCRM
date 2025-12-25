@@ -9,6 +9,7 @@ from apps.users.views import (
     UserViewSet,
     DoctorListView,
     StaffScheduleListView,
+    StaffScheduleCreateView, StaffScheduleUpdateView,
 )
 
 router = DefaultRouter()
@@ -16,13 +17,15 @@ router.register(r'users', UserViewSet, basename='users')
 
 urlpatterns = [
     # -------- AUTH --------
-    path('login/', LoginView.as_view(), name='auth_login'),
-    path('logout/', LogoutView.as_view(), name='auth_logout'),
-    path('refresh/', RefreshView.as_view(), name='auth_refresh'),
-    path('me/', UserView.as_view(), name='auth_me'),
+    path('auth/login/', LoginView.as_view(), name='auth_login'),
+    path('auth/logout/', LogoutView.as_view(), name='auth_logout'),
+    path('auth/refresh/', RefreshView.as_view(), name='auth_refresh'),
+    path('auth/me/', UserView.as_view(), name='auth_me'),
 
     # -------- USERS --------
-    path('staff-schedules/', StaffScheduleListView.as_view(), name='staff-schedule-list'),
-    path('doctors/', DoctorListView.as_view(), name='doctor_list'),
+    path('staff-schedules/', StaffScheduleListView.as_view(), name='staff_schedule_list'),
+    path('staff-schedules/create/', StaffScheduleCreateView.as_view(), name='staff_schedule_create'),
+    path('staff-schedules/<int:pk>/update/', StaffScheduleUpdateView.as_view(), name='staff_schedule_update'),
+    path('users/doctors/', DoctorListView.as_view(), name='doctor_list'),
     path('', include(router.urls)),
 ]

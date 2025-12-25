@@ -4,14 +4,17 @@ from rest_framework import status, permissions, viewsets, filters, generics
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
-from apps.users.permissions import IsAdmin, IsDoctorOrAdminOrRegister
+from apps.users.permissions import IsAdmin, IsDoctorOrAdminOrRegisterOrNurse
 from apps.users.models import User, StaffSchedule
+from django.contrib.auth import authenticate
 from apps.users.serializers import (
     UserSerializer,
     LoginSerializer,
     RefreshTokenSerializer,
-    TokenSerializer,
-    UserListRetrieveSerializer, StaffScheduleSerializer,
+    UserListRetrieveSerializer,
+    StaffScheduleSerializer,
+    StaffScheduleCreateSerializer,
+    TokenResponseSerializer,
 )
 
 
@@ -20,39 +23,41 @@ from apps.users.serializers import (
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    @swagger_auto_schema(request_body=LoginSerializer, responses={200: TokenSerializer})
+    @swagger_auto_schema(
+        request_body=LoginSerializer,
+        responses={200: TokenResponseSerializer}
+    )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
+        user = authenticate(request, email=email, password=password)
 
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+        if user is None:
             return Response(
-                {"detail": "User not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        if not user.check_password(password):
-            return Response(
-                {"detail": "Invalid password"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Email or password is incorrect"},
+                status=status.HTTP_401_UNAUTHORIZED
             )
 
         if not user.is_active:
             return Response(
-                {"detail": "User is inactive"},
+                {"detail": "is_active is incorrect"},
                 status=status.HTTP_403_FORBIDDEN
             )
 
         refresh = RefreshToken.for_user(user)
         return Response({
+            "refresh": str(refresh),
             "access": str(refresh.access_token),
-            "refresh": str(refresh)
-        })
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role
+            }
+        }, status=status.HTTP_200_OK)
 
 
 class LogoutView(APIView):
@@ -100,6 +105,7 @@ class UserView(APIView):
         serializer = UserListRetrieveSerializer(request.user)
         return Response(serializer.data)
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [IsAdmin]
@@ -119,24 +125,16 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserListRetrieveSerializer
         return UserSerializer
 
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
 
 class DoctorListView(generics.ListAPIView):
     queryset = User.objects.filter(role='doctor')
     serializer_class = UserListRetrieveSerializer
     permission_classes = [permissions.IsAdminUser]
 
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
 
 class StaffScheduleListView(generics.ListAPIView):
     serializer_class = StaffScheduleSerializer
-    permission_classes = [IsDoctorOrAdminOrRegister]
+    permission_classes = [IsDoctorOrAdminOrRegisterOrNurse]
 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['staff', 'staff__role', 'day']
@@ -155,4 +153,19 @@ class StaffScheduleListView(generics.ListAPIView):
             ).select_related('staff')
 
         return StaffSchedule.objects.none()
+
+
+class StaffScheduleCreateView(generics.CreateAPIView):
+    queryset = StaffSchedule.objects.all()
+    serializer_class = StaffScheduleCreateSerializer
+    permission_classes = [IsAdmin]
+
+class StaffScheduleUpdateView(generics.UpdateAPIView):
+    queryset = StaffSchedule.objects.all()
+    serializer_class = StaffScheduleCreateSerializer
+    permission_classes = [IsAdmin]
+
+    lookup_field = 'pk'
+    lookup_url_kwarg = 'pk'
+
 
