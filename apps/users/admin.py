@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
-from .models import User, Patients
+from .models import User, Patients, StaffSchedule
 
 
 @admin.register(User)
@@ -15,7 +15,7 @@ class UserAdmin(BaseUserAdmin):
         return "—"
     image_tag.short_description = "Image"
 
-    list_display = ("image_tag", "full_name", "email", "phone_number", "role", "is_active", "is_staff")
+    list_display = ("id", "image_tag", "full_name", "email", "phone_number", "role", "is_active", "is_staff")
     list_filter = ("role", "is_active", "is_staff")
     search_fields = ("full_name", "email", "phone_number")  
     ordering = ("email",)
@@ -49,3 +49,10 @@ class PatientsAdmin(admin.ModelAdmin):
     search_fields = ("full_name", "phone_number")
     list_filter = ("gender",)
     ordering = ("full_name",)
+
+@admin.register(StaffSchedule)
+class StaffScheduleAdmin(admin.ModelAdmin):
+    list_display = ("id", "staff", "day", "start_time", "end_time")
+    search_fields = ("staff__full_name", "day")
+    list_filter = ("day",)
+    ordering = ("start_time", "end_time")

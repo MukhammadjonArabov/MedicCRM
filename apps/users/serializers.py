@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.users.models import User
+from apps.users.models import User, StaffSchedule
 
 
 class LoginSerializer(serializers.Serializer):
@@ -64,3 +64,18 @@ class UserListRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'full_name', 'role', 'phone_number', 'descriptor', 'image_user']
+
+
+class StaffScheduleSerializer(serializers.ModelSerializer):
+    staff_name = serializers.CharField(source='staff.full_name', read_only=True)
+    staff_role = serializers.CharField(source='staff.get_role_display', read_only=True)
+    staff_id = serializers.IntegerField(source='staff.id', read_only=True)
+    day_display = serializers.CharField(source='get_day_display', read_only=True)
+
+    class Meta:
+        model = StaffSchedule
+        fields = [
+            'id', 'staff_id', 'staff_name', 'staff_role',
+            'day', 'day_display', 'start_time', 'end_time'
+        ]
+        read_only_fields = ['staff_name', 'staff_role', 'day_display']

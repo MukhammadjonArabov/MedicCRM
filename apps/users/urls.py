@@ -8,6 +8,7 @@ from apps.users.views import (
     UserView,
     UserViewSet,
     DoctorListView,
+    StaffScheduleListView,
 )
 
 router = DefaultRouter()
@@ -21,6 +22,7 @@ urlpatterns = [
     path('me/', UserView.as_view(), name='auth_me'),
 
     # -------- USERS --------
+    path('staff-schedules/', StaffScheduleListView.as_view(), name='staff-schedule-list'),
     path('doctors/', DoctorListView.as_view(), name='doctor_list'),
     path('', include(router.urls)),
 ]

@@ -4,14 +4,14 @@ from rest_framework import status, permissions, viewsets, filters, generics
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
-from apps.users.permissions import IsAdmin
-from apps.users.models import User
+from apps.users.permissions import IsAdmin, IsDoctorOrAdminOrRegister
+from apps.users.models import User, StaffSchedule
 from apps.users.serializers import (
     UserSerializer,
     LoginSerializer,
     RefreshTokenSerializer,
     TokenSerializer,
-    UserListRetrieveSerializer,
+    UserListRetrieveSerializer, StaffScheduleSerializer,
 )
 
 
@@ -20,7 +20,7 @@ from apps.users.serializers import (
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    @swagger_auto_schema(tags=["Auth"], request_body=LoginSerializer, responses={200: TokenSerializer})
+    @swagger_auto_schema(request_body=LoginSerializer, responses={200: TokenSerializer})
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -58,7 +58,7 @@ class LoginView(APIView):
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    @swagger_auto_schema(tags=["Auth"], request_body=RefreshTokenSerializer)
+    @swagger_auto_schema(request_body=RefreshTokenSerializer)
     def post(self, request):
         serializer = RefreshTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -77,7 +77,7 @@ class LogoutView(APIView):
 class RefreshView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    @swagger_auto_schema(tags=["Auth"], request_body=RefreshTokenSerializer)
+    @swagger_auto_schema(request_body=RefreshTokenSerializer)
     def post(self, request):
         serializer = RefreshTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -133,3 +133,26 @@ class DoctorListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+class StaffScheduleListView(generics.ListAPIView):
+    serializer_class = StaffScheduleSerializer
+    permission_classes = [IsDoctorOrAdminOrRegister]
+
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['staff', 'staff__role', 'day']
+    ordering_fields = ['day', 'start_time', 'staff__full_name']
+    ordering = ['day', 'start_time']
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role in ['doctor', 'nurse']:
+            return StaffSchedule.objects.filter(staff=user)
+
+        elif user.role in ['admin', 'registrar',]:
+            return StaffSchedule.objects.filter(
+                staff__role__in=['doctor', 'nurse']
+            ).select_related('staff')
+
+        return StaffSchedule.objects.none()
+

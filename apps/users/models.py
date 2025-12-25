@@ -78,3 +78,31 @@ class Patients(BaseModel):
     def __str__(self):
         return f"{self.full_name} ({self.phone_number})"
 
+
+
+class StaffSchedule(BaseModel):
+    WEEK_DAYS = (
+        ('Mon', 'Monday'),
+        ('Tue', 'Tuesday'),
+        ('Wed', 'Wednesday'),
+        ('Thu', 'Thursday'),
+        ('Fri', 'Friday'),
+        ('Sat', 'Saturday'),
+        ('Sun', 'Sunday'),
+    )
+    staff = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='staff_schedule',
+        limit_choices_to={'role__in': ['doctor', 'nurse']}
+    )
+    day = models.CharField(max_length=10, choices=WEEK_DAYS)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    class Meta:
+        unique_together = ('staff', 'day')
+        ordering = ['day', 'start_time']
+
+    def __str__(self):
+        return f"{self.staff} ({self.day})"
