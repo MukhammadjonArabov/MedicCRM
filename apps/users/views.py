@@ -1,3 +1,4 @@
+from rest_framework.filters import SearchFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, viewsets, filters, generics
@@ -6,6 +7,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from apps.users.models import User, StaffSchedule, Patients
 from django.contrib.auth import authenticate
+from django.db.models import Q
+from rest_framework.decorators import action
 from apps.users.permissions import (
     IsAdmin,
     IsDoctorOrAdminOrRegisterOrNurse,
@@ -180,16 +183,19 @@ class StaffScheduleUpdateView(generics.UpdateAPIView):
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patients.objects.all()
     lookup_field = 'pk'
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at', 'full_name']
+    ordering = ['-created_at']
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'search':
             return PatientListSerializer
         elif self.action in ['retrieve', 'update', 'partial_update']:
             return PatientDetailSerializer
         return PatientCreateUpdateSerializer
 
     def get_permissions(self):
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'search':
             permission_classes = [IsDoctorOrAdminOrRegistrar]
         elif self.action == 'create':
             permission_classes = [IsAdminOrRegistrar]
@@ -204,4 +210,21 @@ class PatientViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
+    @action(detail=False, methods=['get'], url_path='search')
+    def search(self, request):
+        query = request.query_params.get('q', '').strip()
+        if not query:
+            return Response([], status=200)
 
+        queryset = self.get_queryset().filter(
+            Q(full_name__icontains=query) |
+            Q(phone_number__icontains=query)
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
