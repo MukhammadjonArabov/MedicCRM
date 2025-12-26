@@ -183,9 +183,10 @@ class StaffScheduleUpdateView(generics.UpdateAPIView):
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patients.objects.all()
     lookup_field = 'pk'
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['created_at', 'full_name']
     ordering = ['-created_at']
+    search_fields = ['full_name', 'phone_number']
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'search':
@@ -209,22 +210,3 @@ class PatientViewSet(viewsets.ModelViewSet):
             permission_classes = [IsDoctorOrAdminOrRegistrar]
 
         return [permission() for permission in permission_classes]
-
-    @action(detail=False, methods=['get'], url_path='search')
-    def search(self, request):
-        query = request.query_params.get('q', '').strip()
-        if not query:
-            return Response([], status=200)
-
-        queryset = self.get_queryset().filter(
-            Q(full_name__icontains=query) |
-            Q(phone_number__icontains=query)
-        )
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
