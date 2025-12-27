@@ -24,6 +24,7 @@ class Queue(BaseModel):
     def __str__(self):
         return f'{self.patient} - {self.doctor}'
 
+
 class Meeting(BaseModel):
     STATUS_CHOICES = (
         ('pending', 'Pending'),

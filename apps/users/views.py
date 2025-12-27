@@ -1,4 +1,3 @@
-from rest_framework.filters import SearchFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, viewsets, filters, generics
@@ -7,8 +6,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from apps.users.models import User, StaffSchedule, Patients
 from django.contrib.auth import authenticate
-from django.db.models import Q
-from rest_framework.decorators import action
 from apps.users.permissions import (
     IsAdmin,
     IsDoctorOrAdminOrRegisterOrNurse,
