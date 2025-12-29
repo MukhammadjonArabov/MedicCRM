@@ -37,7 +37,7 @@ class UserAdmin(BaseUserAdmin):
 @admin.register(Patients)
 class PatientsAdmin(admin.ModelAdmin):
     def image_tag(self, obj):
-        if obj.image_user:
+        if obj.image_patient:
             return format_html(
                 '<img src="{}" width="50" height="50" style="border-radius:15px;" />',
                 obj.image_user.url
