@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.utils import timezone
-
 from apps.meeting.models import Meeting
 from apps.users.models import User, Patients, StaffSchedule, uzbek_phone_validator
 
@@ -9,7 +8,6 @@ class MeetingCreateSerializer(serializers.ModelSerializer):
     doctor = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.filter(is_active=True, role='doctor')
     )
-
     date_time = serializers.DateTimeField()
 
     patient_phone = serializers.CharField(
@@ -128,3 +126,8 @@ class MeetingCreateSerializer(serializers.ModelSerializer):
             status='pending'
         )
         return meeting
+
+class MeetingListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meeting
+        fields = ('patient', 'doctor', 'date_time', 'status', 'patient_full_name',)
