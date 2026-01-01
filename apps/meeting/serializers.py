@@ -127,27 +127,70 @@ class MeetingCreateSerializer(serializers.ModelSerializer):
         )
         return meeting
 
-class DocktorShortSerializer(serializers.ModelSerializer):
+
+class DoctorShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'full_name', 'email', 'phone_number', 'image_user',)
+        fields = ('id', 'full_name', 'email', 'phone_number')
+
 
 class PatientShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patients
-        fields = ('id', 'full_name', 'phone_number', 'image_patient',)        
+        fields = ('id', 'full_name', 'phone_number')
+
 
 class MeetingListSerializer(serializers.ModelSerializer):
-    doctor = DocktorShortSerializer(read_only=True)
+    doctor = DoctorShortSerializer(read_only=True)
     patient = PatientShortSerializer(read_only=True)
 
     class Meta:
         model = Meeting
-        fields = ('id', 'patient', 'doctor', 'date_time', 'status', 'created_by',)
+        fields = ('id', 'patient', 'doctor', 'date_time', 'status')
 
-class MettingDoctorListSerializer(serializers.ModelSerializer):
+
+class MeetingDoctorListSerializer(serializers.ModelSerializer):
     patient = PatientShortSerializer(read_only=True)
 
     class Meta:
         model = Meeting
-        fields = ('id', 'patient', 'date_time', 'status', 'created_by',)        
+        fields = ('id', 'patient', 'date_time', 'status')
+
+
+class PatientDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patients
+        fields = (
+            'id', 'full_name', 'phone_number', 'image_patient',
+            'birth_date', 'gender', 'address', 'notes'
+        )
+
+
+class DoctorDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'id', 'email', 'full_name', 'phone_number', 'descriptor', 'image_user'
+        )
+
+
+class MeetingRetrieveSerializer(serializers.ModelSerializer):
+    patient = PatientDetailSerializer(read_only=True)
+    doctor = DoctorDetailSerializer(read_only=True)
+
+    class Meta:
+        model = Meeting
+        fields = (
+            'id', 'patient', 'doctor', 'date_time', 'status', 'created_by', 'created_at'
+        )
+
+
+class MeetingDoctorRetrieveSerializer(serializers.ModelSerializer):
+    patient = PatientDetailSerializer(read_only=True)
+
+    class Meta:
+        model = Meeting
+        fields = (
+            'id', 'patient', 'date_time', 'status', 'created_by', 'created_at'
+        )
+

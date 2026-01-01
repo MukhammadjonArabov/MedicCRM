@@ -34,11 +34,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [
+        fields = (
             'id', 'email', 'password', 'full_name', 'role',
             'phone_number', 'descriptor', 'image_user',
-            'is_active', 'is_staff', 'created_at', 'updated_at'
-        ]
+            'is_active', 'is_staff', 'created_at', 'updated_at',
+        )
         read_only_fields = ['id', 'is_staff', 'created_at', 'updated_at']
 
     def create(self, validated_data):
@@ -73,7 +73,7 @@ class UserListRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'full_name', 'role', 'phone_number', 'descriptor', 'image_user']
+        fields = ('id', 'email', 'full_name', 'role', 'phone_number', 'descriptor', 'image_user',)
 
 
 class StaffScheduleSerializer(serializers.ModelSerializer):
@@ -84,10 +84,10 @@ class StaffScheduleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StaffSchedule
-        fields = [
+        fields = (
             'id', 'staff_id', 'staff_name', 'staff_role',
-            'day', 'day_display', 'start_time', 'end_time'
-        ]
+            'day', 'day_display', 'start_time', 'end_time',
+        )
         read_only_fields = ['staff_name', 'staff_role', 'day_display']
 
 
@@ -97,10 +97,10 @@ class StaffScheduleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StaffSchedule
-        fields = [
+        fields = (
             'id', 'staff', 'staff_name',
-            'day', 'day_display', 'start_time', 'end_time'
-        ]
+            'day', 'day_display', 'start_time', 'end_time',
+        )
         read_only_fields = ['staff_name', 'day_display']
 
     def validate(self, data):
@@ -110,19 +110,19 @@ class StaffScheduleCreateSerializer(serializers.ModelSerializer):
             )
         return data
 
-class PatientListSerializer(serializers.ModelSerializer):  # PatientsListSerializers → PatientListSerializer
+class PatientListSerializer(serializers.ModelSerializer): 
     class Meta:
         model = Patients
-        fields = ['id', 'full_name', 'phone_number', 'image_patient']
+        fields = ('id', 'full_name', 'phone_number', 'image_patient',)
 
 class PatientDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patients
-        fields = ['id', 'full_name', 'phone_number', 'image_patient',
-                  'birth_date', 'gender', 'address', 'notes']
+        fields = ('id', 'full_name', 'phone_number', 'image_patient',
+                  'birth_date', 'gender', 'address', 'notes',)
 
 class PatientCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patients
-        fields = ['full_name', 'phone_number', 'image_patient',
-                  'birth_date', 'gender', 'address', 'notes']
+        fields = ('full_name', 'phone_number', 'image_patient',
+                  'birth_date', 'gender', 'address', 'notes',)

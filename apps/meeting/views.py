@@ -2,7 +2,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from apps.meeting.models import Meeting, Queue
 from apps.meeting.serializers import (
-    MeetingCreateSerializer, MeetingListSerializer, MettingDoctorListSerializer
+        MeetingCreateSerializer, MeetingDoctorListSerializer, MeetingListSerializer, MeetingRetrieveSerializer,
+        MeetingDoctorRetrieveSerializer,
     )
 from apps.users.permissions import IsAdminOrRegistrar, IsDoctorOrAdminOrRegistrar
 
@@ -12,24 +13,49 @@ class MeetingCreateAPIView(generics.CreateAPIView):
     permission_classes = [IsAdminOrRegistrar]
 
 class MeetingListAPIView(generics.ListAPIView):
-    queryset = Meeting.objects.all()
-    serializer_class = MeetingListSerializer
     permission_classes = [IsDoctorOrAdminOrRegistrar]
 
     def get_queryset(self):
         user = self.request.user
 
+        doctor_or_patient = Meeting.objects.select_related('doctor', 'patient')
+
         if user.role in ['admin', 'registrar']:
-            return Meeting.objects.all().order_by('-date_time')
+            return doctor_or_patient.order_by('-date_time')
         
         elif user.role == 'doctor':
-            return Meeting.objects.filter(doctor=user).order_by('-date_time')
+            return doctor_or_patient.filter(doctor=user).order_by('-date_time')
+        
+        return Meeting.objects.none() 
+    
+    def get_serializer_class(self):
+       user = self.request.user
+
+       return (
+           MeetingDoctorListSerializer if user.role == 'doctor' else MeetingListSerializer
+       )
+    
+    
+class MeetingRetriveAPIView(generics.RetrieveAPIView):
+    parmission_classes = [IsDoctorOrAdminOrRegistrar]
+    lookup_field = 'pk'
+
+    def get_queryset(self):
+        user = self.request.user
+
+        doctor_or_patient = Meeting.objects.select_related('doctor', 'patient')
+
+        if user.role in ['admin', 'registrar']:
+            return doctor_or_patient.order_by('-date_time')
+        
+        elif user.role == 'doctor':
+            return doctor_or_patient.filter(doctor=user).order_by('-date_time')
         
         return Meeting.objects.none()
     
-    def get_serializer(self, *args, **kwargs):
+    def get_serializer_class(self):
         user = self.request.user
-        if user.role == 'doctor':
-            kwargs['context'] = self.get_serializer_context()
-            return MettingDoctorListSerializer(*args, **kwargs)
-        return super().get_serializer(*args, **kwargs)
+
+        return (
+            MeetingDoctorRetrieveSerializer if user.role == 'doctor' else MeetingRetrieveSerializer
+        )
