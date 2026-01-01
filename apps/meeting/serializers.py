@@ -194,3 +194,62 @@ class MeetingDoctorRetrieveSerializer(serializers.ModelSerializer):
             'id', 'patient', 'date_time', 'status', 'created_by', 'created_at'
         )
 
+
+class MeetingUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meeting
+        fields = ('doctor', 'patient', 'date_time', 'status')
+        extra_kwargs = {
+            'doctor': {'required': False},
+            'patient': {'required': False},
+            'date_time': {'required': False},
+            'status': {'required': False},
+        }
+
+    def validate(self, attrs):
+        meeting = self.instance
+
+        new_doctor = attrs.get('doctor', meeting.doctor)
+        new_patient = attrs.get('patient', meeting.patient)
+        new_date_time = attrs.get('date_time', meeting.date_time)
+        new_status = attrs.get('status', meeting.status)
+
+        if meeting.status in ['cancelled', 'completed']:
+            raise serializers.ValidationError(
+                "Cannot update a cancelled or completed meeting."
+            )
+
+        status_transitions = {
+            'pending': ['approved', 'cancelled'],
+            'approved': ['completed', 'cancelled'],
+        }
+
+        if meeting.status != new_status:
+            allowed = status_transitions.get(meeting.status, [])
+            if new_status not in allowed:
+                raise serializers.ValidationError(
+                    f"Invalid status transition from {meeting.status} to {new_status}."
+                )
+
+        if new_date_time < timezone.now():
+            raise serializers.ValidationError(
+                "Meeting time cannot be in the past."
+            )
+
+        if meeting.status == 'approved':
+            if new_doctor != meeting.doctor or new_patient != meeting.patient:
+                raise serializers.ValidationError(
+                    "Cannot change doctor or patient for an approved meeting."
+                )
+
+        conflict = Meeting.objects.filter(
+            doctor=new_doctor,
+            date_time=new_date_time
+        ).exclude(id=meeting.id).exists()
+
+        if conflict:
+            raise serializers.ValidationError(
+                f"{new_doctor.full_name} is already busy at this time."
+            )
+
+        return attrs

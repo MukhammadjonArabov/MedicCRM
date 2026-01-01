@@ -3,14 +3,16 @@ from rest_framework.response import Response
 from apps.meeting.models import Meeting, Queue
 from apps.meeting.serializers import (
         MeetingCreateSerializer, MeetingDoctorListSerializer, MeetingListSerializer, MeetingRetrieveSerializer,
-        MeetingDoctorRetrieveSerializer,
+        MeetingDoctorRetrieveSerializer, MeetingUpdateSerializer
     )
 from apps.users.permissions import IsAdminOrRegistrar, IsDoctorOrAdminOrRegistrar
+
 
 class MeetingCreateAPIView(generics.CreateAPIView):
     queryset = Meeting.objects.all()
     serializer_class = MeetingCreateSerializer
     permission_classes = [IsAdminOrRegistrar]
+
 
 class MeetingListAPIView(generics.ListAPIView):
     permission_classes = [IsDoctorOrAdminOrRegistrar]
@@ -35,7 +37,7 @@ class MeetingListAPIView(generics.ListAPIView):
            MeetingDoctorListSerializer if user.role == 'doctor' else MeetingListSerializer
        )
     
-    
+
 class MeetingRetriveAPIView(generics.RetrieveAPIView):
     parmission_classes = [IsDoctorOrAdminOrRegistrar]
     lookup_field = 'pk'
@@ -59,3 +61,9 @@ class MeetingRetriveAPIView(generics.RetrieveAPIView):
         return (
             MeetingDoctorRetrieveSerializer if user.role == 'doctor' else MeetingRetrieveSerializer
         )
+    
+
+class MeetingUpdateAPIView(generics.UpdateAPIView):
+    queryset = Meeting.objects.all()
+    serializer_class = MeetingUpdateSerializer
+    permission_classes = [IsAdminOrRegistrar]
