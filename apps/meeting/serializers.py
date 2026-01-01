@@ -127,7 +127,27 @@ class MeetingCreateSerializer(serializers.ModelSerializer):
         )
         return meeting
 
+class DocktorShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'full_name', 'email', 'phone_number', 'image_user',)
+
+class PatientShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patients
+        fields = ('id', 'full_name', 'phone_number', 'image_patient',)        
+
 class MeetingListSerializer(serializers.ModelSerializer):
+    doctor = DocktorShortSerializer(read_only=True)
+    patient = PatientShortSerializer(read_only=True)
+
     class Meta:
         model = Meeting
-        fields = ('patient', 'doctor', 'date_time', 'status', 'patient_full_name',)
+        fields = ('id', 'patient', 'doctor', 'date_time', 'status', 'created_by',)
+
+class MettingDoctorListSerializer(serializers.ModelSerializer):
+    patient = PatientShortSerializer(read_only=True)
+
+    class Meta:
+        model = Meeting
+        fields = ('id', 'patient', 'date_time', 'status', 'created_by',)        

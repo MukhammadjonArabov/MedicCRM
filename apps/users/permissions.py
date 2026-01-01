@@ -44,3 +44,4 @@ class IsDoctorOrAdmin(BasePermission):
             request.user.is_authenticated and
             request.user.role in ['doctor', 'admin']
         )
+

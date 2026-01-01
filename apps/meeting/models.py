@@ -54,3 +54,6 @@ class Meeting(BaseModel):
 
     def __str__(self):
         return f'{self.patient} - {self.doctor}'
+
+
+
