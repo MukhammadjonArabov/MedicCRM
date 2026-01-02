@@ -253,3 +253,48 @@ class MeetingUpdateSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+    
+
+class MeetingStatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meeting
+        fields = ('status',)
+
+    def validate(self, attrs):
+        meeting = self.instance
+        user = self.context['request'].user
+        new_status = attrs.get('status')
+
+        if meeting.status in ['cancelled', 'completed']:
+            raise serializers.ValidationError(
+                'Cannot update a cancelled or completed meeting.'
+            )   
+
+        status_transitions = {
+            'pending': ['approved', 'cancelled'],
+            'approved': ['completed', 'cancelled'],
+        }
+
+        allowed = status_transitions.get(meeting.status, [])
+        if new_status not in allowed:
+            raise serializers.ValidationError(
+                f'Invalid status transition from {meeting.status} to {new_status}.'
+            )
+
+        if user.role == 'doctor':
+            if meeting.doctor != user:
+                raise serializers.ValidationError(
+                    'Doctors can only update their own meetings.'
+                )     
+            
+            if new_status != 'completed':
+                raise serializers.ValidationError(
+                    'Doctors can only mark meetings as completed.'
+                )
+            
+        if new_status == 'approved' and meeting.date_time < timezone.now():
+            raise serializers.ValidationError(
+                'Cannot approve a meeting scheduled in the past.'
+            )
+
+        return attrs    

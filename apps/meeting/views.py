@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from apps.meeting.models import Meeting, Queue
 from apps.meeting.serializers import (
         MeetingCreateSerializer, MeetingDoctorListSerializer, MeetingListSerializer, MeetingRetrieveSerializer,
-        MeetingDoctorRetrieveSerializer, MeetingUpdateSerializer
+        MeetingDoctorRetrieveSerializer, MeetingUpdateSerializer, MeetingStatusUpdateSerializer
     )
 from apps.users.permissions import IsAdminOrRegistrar, IsDoctorOrAdminOrRegistrar
 
@@ -67,3 +67,11 @@ class MeetingUpdateAPIView(generics.UpdateAPIView):
     queryset = Meeting.objects.all()
     serializer_class = MeetingUpdateSerializer
     permission_classes = [IsAdminOrRegistrar]
+    http_method_names = ['patch']
+
+
+class MeetingStatusUpdateAPIView(generics.UpdateAPIView): 
+    queryset = Meeting.objects.all()
+    serializer_class = MeetingStatusUpdateSerializer
+    permission_classes = [IsDoctorOrAdminOrRegistrar]
+    http_method_names = ['patch']   
