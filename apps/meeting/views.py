@@ -1,9 +1,11 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from apps.meeting.models import Meeting, Queue
+from django.utils.timezone import localdate
 from apps.meeting.serializers import (
         MeetingCreateSerializer, MeetingDoctorListSerializer, MeetingListSerializer, MeetingRetrieveSerializer,
-        MeetingDoctorRetrieveSerializer, MeetingUpdateSerializer, MeetingStatusUpdateSerializer
+        MeetingDoctorRetrieveSerializer, MeetingUpdateSerializer, MeetingStatusUpdateSerializer,
+        MeetingDailySerializer
     )
 from apps.users.permissions import IsAdminOrRegistrar, IsDoctorOrAdminOrRegistrar
 
@@ -75,3 +77,22 @@ class MeetingStatusUpdateAPIView(generics.UpdateAPIView):
     serializer_class = MeetingStatusUpdateSerializer
     permission_classes = [IsDoctorOrAdminOrRegistrar]
     http_method_names = ['patch']   
+
+
+class DailyMeetingListAPIView(generics.ListAPIView):
+    serializer_class = MeetingDailySerializer   
+    permission_classes = [IsDoctorOrAdminOrRegistrar]
+
+    def get_queryset(self):
+        user = self.request.user
+        today = localdate()
+
+        queryset = Meeting.objects.filter(date_time__date=today)
+
+        if user.role in ['admin', 'registrar']:
+            return queryset
+        
+        elif user.role == 'doctor':
+            return queryset.filter(doctor=user)
+        
+        return Meeting.objects.none()

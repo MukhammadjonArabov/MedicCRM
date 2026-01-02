@@ -298,3 +298,12 @@ class MeetingStatusUpdateSerializer(serializers.ModelSerializer):
             )
 
         return attrs    
+    
+
+class MeetingDailySerializer(serializers.ModelSerializer):
+    doctor_name = serializers.CharField(source='doctor.full_name', read_only=True)  
+    patinet_name = serializers.CharField(source='patient.full_name', read_only=True)
+
+    class Meta:
+        model = Meeting
+        fields = ('id', 'doctor_name', 'patinet_name', 'date_time', 'status')  
