@@ -28,8 +28,7 @@ class RefreshTokenSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
-        required=True,
-        min_length=8
+        required=True
     )
 
     class Meta:
@@ -109,17 +108,20 @@ class StaffScheduleCreateSerializer(serializers.ModelSerializer):
                 'Start time > End time'
             )
         return data
+    
 
 class PatientListSerializer(serializers.ModelSerializer): 
     class Meta:
         model = Patients
         fields = ('id', 'full_name', 'phone_number', 'image_patient',)
 
+
 class PatientDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patients
         fields = ('id', 'full_name', 'phone_number', 'image_patient',
                   'birth_date', 'gender', 'address', 'notes',)
+        
 
 class PatientCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
