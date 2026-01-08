@@ -113,19 +113,3 @@ def test_is_doctor_or_admin_denied_for_anonymous(anonymous_user):
     permission = IsDoctorOrAdmin()
     request = get_request(anonymous_user)
     assert permission.has_permission(request, None) is False
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -210,8 +210,3 @@ def test_patient_create_update_serializer():
     patient = serializer.save()
 
     assert patient.full_name == "Ahat Shomirodov"
-
-
-
-
-

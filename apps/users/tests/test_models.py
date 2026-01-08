@@ -137,9 +137,3 @@ def test_staff_schedule_unique_together():
             start_time=time(10, 0),
             end_time=time(18, 0)
         )
-
-
-
-
-
-

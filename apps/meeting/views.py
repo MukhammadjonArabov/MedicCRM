@@ -2,11 +2,17 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from apps.meeting.models import Meeting, Queue
 from django.utils.timezone import localdate
+from apps.users.views import BaseAPIView
 from apps.meeting.serializers import (
-        MeetingCreateSerializer, MeetingDoctorListSerializer, MeetingListSerializer, MeetingRetrieveSerializer,
-        MeetingDoctorRetrieveSerializer, MeetingUpdateSerializer, MeetingStatusUpdateSerializer,
-        MeetingDailySerializer
-    )
+    MeetingCreateSerializer,
+    MeetingDoctorListSerializer,
+    MeetingListSerializer,
+    MeetingRetrieveSerializer,
+    MeetingDoctorRetrieveSerializer,
+    MeetingUpdateSerializer,
+    MeetingStatusUpdateSerializer,
+    MeetingDailySerializer
+)
 from apps.users.permissions import IsAdminOrRegistrar, IsDoctorOrAdminOrRegistrar
 
 
@@ -16,54 +22,68 @@ class MeetingCreateAPIView(generics.CreateAPIView):
     permission_classes = [IsAdminOrRegistrar]
 
 
-class MeetingListAPIView(generics.ListAPIView):
+class MeetingListAPIView(BaseAPIView, generics.ListAPIView):
     permission_classes = [IsDoctorOrAdminOrRegistrar]
 
     def get_queryset(self):
-        user = self.request.user
+        if self.is_swagger():
+            return Meeting.objects.none()
 
-        doctor_or_patient = Meeting.objects.select_related('doctor', 'patient')
+        user = self.get_user()
+        role = self.get_user_role()
 
-        if user.role in ['admin', 'registrar']:
-            return doctor_or_patient.order_by('-date_time')
-        
-        elif user.role == 'doctor':
-            return doctor_or_patient.filter(doctor=user).order_by('-date_time')
-        
-        return Meeting.objects.none() 
-    
+        qs = Meeting.objects.select_related('doctor', 'patient')
+
+        if role in ['admin', 'registrar']:
+            return qs
+
+        if role == 'doctor':
+            return qs.filter(doctor=user)
+
+        return qs.none()
+
     def get_serializer_class(self):
-       user = self.request.user
+        return (
+            MeetingDoctorListSerializer
+            if self.get_user_role() == 'doctor'
+            else MeetingListSerializer
+        )
 
-       return (
-           MeetingDoctorListSerializer if user.role == 'doctor' else MeetingListSerializer
-       )
-    
 
-class MeetingRetriveAPIView(generics.RetrieveAPIView):
-    parmission_classes = [IsDoctorOrAdminOrRegistrar]
+class MeetingRetriveAPIView(BaseAPIView, generics.RetrieveAPIView):
+    permission_classes = [IsDoctorOrAdminOrRegistrar]
     lookup_field = 'pk'
 
     def get_queryset(self):
-        user = self.request.user
 
-        doctor_or_patient = Meeting.objects.select_related('doctor', 'patient')
+        if self.is_swagger():
+            return Meeting.objects.none()
 
-        if user.role in ['admin', 'registrar']:
-            return doctor_or_patient.order_by('-date_time')
-        
-        elif user.role == 'doctor':
-            return doctor_or_patient.filter(doctor=user).order_by('-date_time')
-        
+        user = self.get_user()
+        role = self.get_user_role()
+
+        if not user:
+            return Meeting.objects.none()
+
+        queryset = Meeting.objects.select_related('doctor', 'patient')
+
+        if role in ['admin', 'registrar']:
+            return queryset.order_by('-date_time')
+
+        if role == 'doctor':
+            return queryset.filter(doctor=user).order_by('-date_time')
+
         return Meeting.objects.none()
-    
+
     def get_serializer_class(self):
-        user = self.request.user
+        if self.is_swagger():
+            return MeetingRetrieveSerializer
 
         return (
-            MeetingDoctorRetrieveSerializer if user.role == 'doctor' else MeetingRetrieveSerializer
+            MeetingDoctorRetrieveSerializer
+            if self.get_user_role() == 'doctor'
+            else MeetingRetrieveSerializer
         )
-    
 
 class MeetingUpdateAPIView(generics.UpdateAPIView):
     queryset = Meeting.objects.all()
@@ -72,27 +92,34 @@ class MeetingUpdateAPIView(generics.UpdateAPIView):
     http_method_names = ['patch']
 
 
-class MeetingStatusUpdateAPIView(generics.UpdateAPIView): 
+class MeetingStatusUpdateAPIView(generics.UpdateAPIView):
     queryset = Meeting.objects.all()
     serializer_class = MeetingStatusUpdateSerializer
     permission_classes = [IsDoctorOrAdminOrRegistrar]
-    http_method_names = ['patch']   
+    http_method_names = ['patch']
 
 
-class DailyMeetingListAPIView(generics.ListAPIView):
-    serializer_class = MeetingDailySerializer   
+class DailyMeetingListAPIView(BaseAPIView, generics.ListAPIView):
+    serializer_class = MeetingDailySerializer
     permission_classes = [IsDoctorOrAdminOrRegistrar]
 
     def get_queryset(self):
-        user = self.request.user
-        today = localdate()
+        if self.is_swagger():
+            return Meeting.objects.none()
 
+        user = self.get_user()
+        role = self.get_user_role()
+
+        if not user.is_authenticated:
+            return Meeting.objects.none()
+
+        today = localdate()
         queryset = Meeting.objects.filter(date_time__date=today)
 
-        if user.role in ['admin', 'registrar']:
+        if role in ['admin', 'registrar']:
             return queryset
-        
-        elif user.role == 'doctor':
+
+        elif role == 'doctor':
             return queryset.filter(doctor=user)
-        
+
         return Meeting.objects.none()

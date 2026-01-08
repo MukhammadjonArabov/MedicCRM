@@ -6,6 +6,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from apps.users.models import User, StaffSchedule, Patients
 from django.contrib.auth import authenticate
+from rest_framework.generics import GenericAPIView
+from django.contrib.auth.models import AnonymousUser
 from apps.users.permissions import (
     IsAdmin,
     IsDoctorOrAdminOrRegisterOrNurse,
@@ -28,6 +30,22 @@ from apps.users.serializers import (
 
 # ================= AUTH =================
 
+
+class BaseAPIView(GenericAPIView):
+    def get_user(self):
+        user = getattr(self.request, 'user', None)
+        if isinstance(user, AnonymousUser):
+            return None
+        return user
+
+    def get_user_role(self):
+        user = self.get_user()
+        return getattr(user, 'role', None)
+
+    def is_swagger(self):
+        return getattr(self, 'swagger_fake_view', False)
+    
+
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -36,6 +54,19 @@ class LoginView(APIView):
         responses={200: TokenResponseSerializer}
     )
     def post(self, request):
+        if request.user and request.user.is_authenticated:
+            return Response(
+                {
+                    "detail": "User already authenticated",
+                    "user": {
+                        "id": request.user.id,
+                        "email": request.user.email,
+                        "full_name": request.user.full_name,
+                        "role": request.user.role,
+                    }
+                },
+                status=status.HTTP_200_OK, 
+            )
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -51,21 +82,25 @@ class LoginView(APIView):
 
         if not user.is_active:
             return Response(
-                {"detail": "is_active is incorrect"},
+                {"detail": "User is inactive"},
                 status=status.HTTP_403_FORBIDDEN
             )
 
         refresh = RefreshToken.for_user(user)
-        return Response({
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "full_name": user.full_name,
-                "role": user.role
-            }
-        }, status=status.HTTP_200_OK)
+
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "role": user.role,
+                }
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class LogoutView(APIView):
@@ -109,6 +144,7 @@ class RefreshView(APIView):
 
 class UserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request):
         serializer = UserListRetrieveSerializer(request.user)
         return Response(serializer.data)
@@ -140,7 +176,7 @@ class DoctorListView(generics.ListAPIView):
     permission_classes = [permissions.IsAdminUser]
 
 
-class StaffScheduleListView(generics.ListAPIView):
+class StaffScheduleListView(BaseAPIView, generics.ListAPIView):
     serializer_class = StaffScheduleSerializer
     permission_classes = [IsDoctorOrAdminOrRegisterOrNurse]
 
@@ -150,12 +186,19 @@ class StaffScheduleListView(generics.ListAPIView):
     ordering = ['day', 'start_time']
 
     def get_queryset(self):
-        user = self.request.user
+        if self.is_swagger():
+            return StaffSchedule.objects.none()
 
-        if user.role in ['doctor', 'nurse']:
+        user = self.get_user()
+        role = self.get_user_role()
+
+        if not user:
+            return StaffSchedule.objects.none()
+
+        if role in ['doctor', 'nurse']:
             return StaffSchedule.objects.filter(staff=user)
 
-        elif user.role in ['admin', 'registrar',]:
+        if role in ['admin', 'registrar']:
             return StaffSchedule.objects.filter(
                 staff__role__in=['doctor', 'nurse']
             ).select_related('staff')
@@ -167,6 +210,7 @@ class StaffScheduleCreateView(generics.CreateAPIView):
     queryset = StaffSchedule.objects.all()
     serializer_class = StaffScheduleCreateSerializer
     permission_classes = [IsAdmin]
+
 
 class StaffScheduleUpdateView(generics.UpdateAPIView):
     queryset = StaffSchedule.objects.all()
@@ -186,24 +230,11 @@ class PatientViewSet(viewsets.ModelViewSet):
     search_fields = ['full_name', 'phone_number']
 
     def get_serializer_class(self):
-        if self.action == 'list' or self.action == 'search':
+        if getattr(self, 'swagger_fake_view', False):
             return PatientListSerializer
-        elif self.action in ['retrieve', 'update', 'partial_update']:
+
+        if self.action in ['list', 'search']:
+            return PatientListSerializer
+        if self.action in ['retrieve', 'update', 'partial_update']:
             return PatientDetailSerializer
         return PatientCreateUpdateSerializer
-
-    def get_permissions(self):
-        if self.action == 'list' or self.action == 'search':
-            permission_classes = [IsDoctorOrAdminOrRegistrar]
-        elif self.action == 'create':
-            permission_classes = [IsAdminOrRegistrar]
-        elif self.action == 'retrieve':
-            permission_classes = [IsDoctorOrAdminOrRegistrar]
-        elif self.action in ['update', 'partial_update']:
-            permission_classes = [IsAdminOrRegistrar]
-        elif self.action == 'destroy':
-            permission_classes = [IsAdmin]
-        else:
-            permission_classes = [IsDoctorOrAdminOrRegistrar]
-
-        return [permission() for permission in permission_classes]
