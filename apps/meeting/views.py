@@ -159,8 +159,6 @@ class DoctorMeetingListView(generics.RetrieveAPIView):
     serializer_class = MeetingListDoctorSerializer
     queryset = Meeting.objects.all()
     permission_classes = [IsAdminOrRegistrar]
-    lookup_field = 'pk'
-
 
 
 
