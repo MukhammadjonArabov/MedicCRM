@@ -10,9 +10,7 @@ from rest_framework.generics import GenericAPIView
 from django.contrib.auth.models import AnonymousUser
 from apps.users.permissions import (
     IsAdmin,
-    IsDoctorOrAdminOrRegisterOrNurse,
-    IsAdminOrRegistrar,
-    IsDoctorOrAdminOrRegistrar
+    IsDoctorOrAdminOrRegisterOrNurse
 )
 from apps.users.serializers import (
     UserSerializer,

@@ -1,3 +1,4 @@
+import django_filters
 from rest_framework import serializers
 from django.utils import timezone
 from apps.meeting.models import Meeting
@@ -302,8 +303,22 @@ class MeetingStatusUpdateSerializer(serializers.ModelSerializer):
 
 class MeetingDailySerializer(serializers.ModelSerializer):
     doctor_name = serializers.CharField(source='doctor.full_name', read_only=True)  
-    patinet_name = serializers.CharField(source='patient.full_name', read_only=True)
+    patient_name = serializers.CharField(source='patient.full_name', read_only=True)
 
     class Meta:
         model = Meeting
-        fields = ('id', 'doctor_name', 'patinet_name', 'date_time', 'status')  
+        fields = ('id', 'doctor_name', 'patient_name', 'date_time', 'status', 'created_at',)
+
+
+class MeetingListDoctorSerializer(serializers.ModelSerializer):
+    patient_name = serializers.CharField(source='patient.full_name', read_only=True)
+    doctor_name = serializers.CharField(source='doctor.full_name', read_only=True)
+
+    class Meta:
+        model = Meeting
+        fields = ['id', 'patient', 'patient_name', 'doctor', 'doctor_name', 'date_time', 'status']
+
+
+
+
+      

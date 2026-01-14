@@ -1,6 +1,6 @@
-from rest_framework import generics, status
-from rest_framework.response import Response
-from apps.meeting.models import Meeting, Queue
+from rest_framework import generics
+from rest_framework.exceptions import ValidationError
+from apps.meeting.models import Meeting
 from django.utils.timezone import localdate
 from apps.users.views import BaseAPIView
 from apps.meeting.serializers import (
@@ -11,7 +11,8 @@ from apps.meeting.serializers import (
     MeetingDoctorRetrieveSerializer,
     MeetingUpdateSerializer,
     MeetingStatusUpdateSerializer,
-    MeetingDailySerializer
+    MeetingDailySerializer,
+    MeetingListDoctorSerializer
 )
 from apps.users.permissions import IsAdminOrRegistrar, IsDoctorOrAdminOrRegistrar
 
@@ -50,7 +51,7 @@ class MeetingListAPIView(BaseAPIView, generics.ListAPIView):
         )
 
 
-class MeetingRetriveAPIView(BaseAPIView, generics.RetrieveAPIView):
+class MeetingRetrieveAPIView(BaseAPIView, generics.RetrieveAPIView):
     permission_classes = [IsDoctorOrAdminOrRegistrar]
     lookup_field = 'pk'
 
@@ -123,3 +124,43 @@ class DailyMeetingListAPIView(BaseAPIView, generics.ListAPIView):
             return queryset.filter(doctor=user)
 
         return Meeting.objects.none()
+
+
+class MonthMeetingListAPIView(BaseAPIView, generics.ListAPIView):
+    serializer_class = MeetingDailySerializer
+    permission_classes = [IsAdminOrRegistrar]
+
+    def get_queryset(self):
+        if self.is_swagger():
+            return Meeting.objects.none()
+
+        params = self.request.query_params
+        year = params.get('year')
+        month = params.get('month')
+
+        if not year or not month:
+            raise ValidationError({"detail": "year and month are required"})
+
+        try:
+            year = int(year)
+            month = int(month)
+        except ValueError:
+            raise ValidationError({"detail": "year and month must be integers"})
+
+        return (
+            Meeting.objects
+            .filter(date_time__year=year, date_time__month=month)
+            .select_related('doctor', 'patient')
+            .order_by('-date_time')
+        )
+
+
+class DoctorMeetingListView(generics.RetrieveAPIView):
+    serializer_class = MeetingListDoctorSerializer
+    queryset = Meeting.objects.all()
+    permission_classes = [IsAdminOrRegistrar]
+    lookup_field = 'pk'
+
+
+
+
